@@ -1,0 +1,24 @@
+{{define "layout"}}
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>{{template "title"}}</title>
+  <link rel="stylesheet" href="/files/stylesheets/main.css">
+</head>
+<body>
+  {{template "body"}}
+  <img src="/files/images/GOPHER_MIC_DROP.png" alt="A logo">
+  <ul> <!-- Make these variable -->
+    <li>IP address: {{.IP}}</li>
+    <li>Country: {{.Country}}</li>
+    <li>Platform: {{.Platf}}</li>
+    <li>OS: {{.OS}}</li>
+    <li>Browser: {{.Browser}}</li>
+    <li>Target: {{.Host}}</li>
+    <li>Mobile?: {{.Mob}}</li>
+    <li>Bot?: {{.Bot}}</li>
+  </ul>
+</body>
+</html>
+{{end}}
