@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/apex/gateway"
+	"github.com/mssola/user_agent"
 	_ "github.com/nleiva/go-lambda-static/statik"
 	"github.com/rakyll/statik/fs"
 )
@@ -28,20 +29,28 @@ type data struct {
 }
 
 func main() {
-	statikFS, err := fs.New()
-	if err != nil {
-		log.Fatal(err)
-	}
+	// Generate files store with "statik -src=./files"
+	// statikFS, err := fs.New()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
 	// E.g.: https://owmcrn7h35.execute-api.us-east-1.amazonaws.com/v1/files/test.txt
 	// https://owmcrn7h35.execute-api.us-east-1.amazonaws.com/v1/files/images/GOPHER_MIC_DROP.png
-	http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(statikFS)))
-	http.HandleFunc("/", hello)
+	// I no longer need this, sourcing filees from S3.
+	// http.Handle("/files/", http.StripPrefix("/files/", http.FileServer(statikFS)))
+	http.HandleFunc("/", processInfo)
 	log.Fatal(gateway.ListenAndServe("", nil))
 }
 
-func hello(w http.ResponseWriter, r *http.Request) {
+func processInfo(w http.ResponseWriter, r *http.Request) {
 	// example retrieving values from the api gateway proxy request context.
 	requestContext, ok := gateway.RequestContext(r.Context())
+	if !ok {
+		fmt.Println("Could not process request")
+		http.Error(w, http.StatusText(http.StatusInternalServerError),
+			http.StatusInternalServerError)
+		return
+	}
 	fmt.Printf("Processing request data for request %s, from IP %s.\n",
 		requestContext.RequestID,
 		requestContext.Identity.SourceIP)
@@ -85,8 +94,29 @@ func hello(w http.ResponseWriter, r *http.Request) {
 	tmpl, err := t.New("layout").Parse(fps)
 	check(err)
 
+	ip := r.Header.Get("X-Forwarded-For")
+
+	sys := r.Header.Get("User-Agent")
+	ua := user_agent.New(sys)
+	br, ver := ua.Browser()
+
+	// Can't forward Host header from CloudFront from API Gateway.
+	// It results in {"message":"Forbidden"}.
+	// We need something like 'X-Forwarded-Host' instead.
+	h := r.Header.Get("Host")
+
+	c := r.Header.Get("CloudFront-Viewer-Country")
+
 	d := data{
-		IP: "1.1.1.1",
+		IP:       ip,
+		Country:  c,
+		Platf:    ua.Platform(),
+		OS:       ua.OS(),
+		Browser:  br,
+		Bversion: ver,
+		Mob:      ua.Mobile(),
+		Bot:      ua.Bot(),
+		Host:     h,
 	}
 
 	var b strings.Builder

@@ -1,6 +1,6 @@
 # Simple AWS Lambda Go function
 
-Test: [test.nleiva.net](https://test.nleiva.net/)
+Test: [lambda.nleiva.net/test](https://lambda.nleiva.net/test)
 
 ## Build code
 

@@ -7,6 +7,7 @@ DIR = $(shell pwd)
 all: build upload
 
 build: ## Compile Go code and create zip file to upload to AWS Lambda
+	statik -src=./files
 	env GOOS=linux GOARCH=amd64 go build -o handler main.go
 	zip -j handler.zip handler
 
